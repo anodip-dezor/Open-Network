@@ -96,7 +96,9 @@ function NetworkForm({ onSubmit }) {
       >
         Save Architecture
       </button>
+      <br />
 
+      Load Architecture
       {/* Load from JSON */}
       <input
         type="file"

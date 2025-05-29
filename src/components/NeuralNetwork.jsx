@@ -3,7 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import Neuron from './Neuron';
 import Connection from './Connection';
 
-function NeuralNetwork({ layers, setCenter }) {
+function NeuralNetwork({ layers, weights = null, biases = null, setCenter }) {
   const layerSpacing = 2.5;
   const neuronSpacing = 0.8;
 
@@ -12,7 +12,7 @@ function NeuralNetwork({ layers, setCenter }) {
 
     layers.forEach((numNeurons, layerIdx) => {
       const layer = [];
-      const yOffset = (numNeurons - 1) * neuronSpacing / 2; // Center each layer vertically
+      const yOffset = (numNeurons - 1) * neuronSpacing / 2;
 
       for (let i = 0; i < numNeurons; i++) {
         const x = layerIdx * layerSpacing;
@@ -25,7 +25,6 @@ function NeuralNetwork({ layers, setCenter }) {
     return result;
   }, [layers]);
 
-  // Set the center neuron of the center layer as orbit target
   useEffect(() => {
     const centerLayerIndex = Math.floor(positions.length / 2);
     const centerNeurons = positions[centerLayerIndex];
@@ -37,12 +36,9 @@ function NeuralNetwork({ layers, setCenter }) {
 
   return (
     <>
-      {/* Neurons */}
       {positions.map((layer, i) =>
-        layer.map((pos, j) => <Neuron key={`n-${i}-${j}`} position={pos} />)
+        layer.map((pos, j) => <Neuron key={`n-${i}-${j}`} position={pos} bias={biases?.[i]?.[j]} />)
       )}
-
-      {/* Connections */}
       {positions.slice(0, -1).map((layer, i) =>
         layer.flatMap((start, si) =>
           positions[i + 1].map((end, ei) => (
@@ -50,7 +46,7 @@ function NeuralNetwork({ layers, setCenter }) {
               key={`c-${i}-${si}-${ei}`}
               start={start}
               end={end}
-              weight={Math.random()}
+              weight={weights?.[i]?.[si]?.[ei] ?? Math.random()}
             />
           ))
         )
