@@ -30,6 +30,7 @@ function NetworkForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit}>
+      <h1>A Dezors Product</h1>
       <h3>Define Neural Network Structure</h3>
       {layers.map((neurons, index) => (
         <div key={index}>
