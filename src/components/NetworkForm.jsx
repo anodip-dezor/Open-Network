@@ -12,7 +12,9 @@ function NetworkForm({ onSubmit }) {
 
     if (parsed < 1) {
       const confirmRemove = window.confirm(
-        `Neurons in Layer ${index + 1} is less than 1. Do you want to remove this layer?`
+        `Neurons in Layer ${
+          index + 1
+        } is less than 1. Do you want to remove this layer?`
       );
       if (confirmRemove) {
         removeLayer(index);
@@ -76,6 +78,54 @@ function NetworkForm({ onSubmit }) {
         Add Layer
       </button>
       <button type="submit">Update Network</button>
+
+      {/* Save to JSON */}
+      <button
+        type="button"
+        onClick={() => {
+          const blob = new Blob([JSON.stringify({ layers }, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "network.json";
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+      >
+        Save Architecture
+      </button>
+
+      {/* Load from JSON */}
+      <input
+        type="file"
+        accept="application/json"
+        style={{ display: "block", marginTop: "1rem" }}
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const json = JSON.parse(event.target.result);
+              if (
+                Array.isArray(json.layers) &&
+                json.layers.every((n) => Number.isInteger(n) && n > 0)
+              ) {
+                setLayers(json.layers);
+                onSubmit(json.layers);
+              } else {
+                alert("Invalid architecture format.");
+              }
+            } catch (err) {
+              alert("Failed to parse JSON.");
+            }
+          };
+          reader.readAsText(file);
+        }}
+      />
     </form>
   );
 }
