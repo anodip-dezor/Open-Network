@@ -1,10 +1,12 @@
 import React, { useState, useRef } from "react";
 import NetworkForm from "./components/NetworkForm";
 import NeuralNetwork from "./components/NeuralNetwork";
-import TrainingAnimation from "./components/TrainingAnimation";
+// import TrainingAnimation from "./components/TrainingAnimation";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Grid, OrbitControls } from "@react-three/drei";
 import "./index.css";
+// import { AxesHelper } from "@react-three/drei";
+import LensFlareEffect from "./components/LensFlareEffect";
 // import { saveNetwork, loadNetwork } from "./utils/storage";
 
 function RotatingGroup({ children }) {
@@ -12,7 +14,7 @@ function RotatingGroup({ children }) {
 
   useFrame(() => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += 0.0001;
+      groupRef.current.rotation.y += 0.00025;
     }
   });
 
@@ -51,15 +53,19 @@ function App() {
         camera={{ position: [0, 0, 10], fov: 50 }}
       >
         {/* Lights */}
-        <pointLight intensity={10000.3} position={[40, 40, 40]} />
+        {/* <pointLight intensity={10000.3} position={[40, 40, 40]} />
         <pointLight intensity={5000.3} position={[-40, -40, 40]} />
         <pointLight intensity={10000.3} position={[-40, 40, -40]} />
-        <pointLight intensity={5000.3} position={[40, -40, -40]} />
-
+        <pointLight intensity={5000.3} position={[40, -40, -40]} /> */}
         <OrbitControls ref={controlRef} target={centerNeuronRef.current} />
-
+        {/* <AxesHelper args={[5]} />; */}
+        <LensFlareEffect />
         <RotatingGroup>
-        <Grid args={[100, 100]} sectionColor={"#555555"} position={[0, -3, 0]} />
+          <Grid
+            args={[100, 100]}
+            sectionColor={"#555555"}
+            position={[0, -3, 0]}
+          />
           <NeuralNetwork
             layers={layers}
             weights={weights}
@@ -71,7 +77,7 @@ function App() {
               }
             }}
           />
-          <TrainingAnimation />
+          {/* <TrainingAnimation /> */}
         </RotatingGroup>
       </Canvas>
     </div>

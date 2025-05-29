@@ -7,6 +7,8 @@ function Connection({ start, end, weight }) {
   const lineRef = useRef();
   const colorRef = useRef(new THREE.Color().setHSL(weight, 1.0, 0.5));
 
+  console.log(weight)
+
   useEffect(() => {
     const material = lineRef.current.material;
     material.color = colorRef.current;
