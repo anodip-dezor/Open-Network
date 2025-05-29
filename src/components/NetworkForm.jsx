@@ -2,25 +2,51 @@
 import React, { useState } from "react";
 
 function NetworkForm({ onSubmit }) {
-  const [layers, setLayers] = useState([3, 5, 2]); // Default layers
+  const [layers, setLayers] = useState([3, 5, 2]);
+
+  const getTotalNeurons = (arr) => arr.reduce((a, b) => a + b, 0);
 
   const handleChange = (index, value) => {
+    const parsed = parseInt(value) || 0;
     const newLayers = [...layers];
-    newLayers[index] = parseInt(value) || 0;
-    setLayers(newLayers);
-    onSubmit(layers);
+
+    if (parsed < 1) {
+      const confirmRemove = window.confirm(
+        `Neurons in Layer ${index + 1} is less than 1. Do you want to remove this layer?`
+      );
+      if (confirmRemove) {
+        removeLayer(index);
+        return;
+      } else {
+        return;
+      }
+    }
+
+    newLayers[index] = parsed;
+    if (getTotalNeurons(newLayers) <= 250) {
+      setLayers(newLayers);
+      onSubmit(newLayers);
+    } else {
+      alert("Total neurons cannot exceed 250.");
+    }
   };
 
   const addLayer = () => {
-    setLayers([...layers, 1]);
-    onSubmit(layers);
+    const currentTotal = getTotalNeurons(layers);
+    if (currentTotal + 1 <= 250) {
+      const newLayers = [...layers, 1];
+      setLayers(newLayers);
+      onSubmit(newLayers);
+    } else {
+      alert("Cannot add more neurons. Total neuron limit is 250.");
+    }
   };
 
   const removeLayer = (index) => {
     if (layers.length > 1) {
       const newLayers = layers.filter((_, i) => i !== index);
       setLayers(newLayers);
-      onSubmit(layers);
+      onSubmit(newLayers);
     }
   };
 
@@ -31,7 +57,6 @@ function NetworkForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1>A Dezors Product</h1>
       <h3>Define Neural Network Structure</h3>
       {layers.map((neurons, index) => (
         <div key={index}>
