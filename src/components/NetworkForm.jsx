@@ -12,9 +12,7 @@ function NetworkForm({ onSubmit }) {
 
     if (parsed < 1) {
       const confirmRemove = window.confirm(
-        `Neurons in Layer ${
-          index + 1
-        } is less than 1. Do you want to remove this layer?`
+        `Neurons in Layer ${index + 1} is less than 1. Do you want to remove this layer?`
       );
       if (confirmRemove) {
         removeLayer(index);
@@ -52,6 +50,15 @@ function NetworkForm({ onSubmit }) {
     }
   };
 
+  const moveLayer = (from, to) => {
+    if (to < 0 || to >= layers.length) return;
+    const newLayers = [...layers];
+    const [moved] = newLayers.splice(from, 1);
+    newLayers.splice(to, 0, moved);
+    setLayers(newLayers);
+    onSubmit(newLayers);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(layers);
@@ -61,7 +68,7 @@ function NetworkForm({ onSubmit }) {
     <form onSubmit={handleSubmit}>
       <h3>Define Neural Network Structure</h3>
       {layers.map((neurons, index) => (
-        <div key={index}>
+        <div key={index} style={{ marginBottom: "0.5rem" }}>
           <label>Layer {index + 1} Neurons:</label>
           <input
             type="number"
@@ -72,8 +79,23 @@ function NetworkForm({ onSubmit }) {
           <button type="button" onClick={() => removeLayer(index)}>
             Remove
           </button>
+          <button
+            type="button"
+            onClick={() => moveLayer(index, index - 1)}
+            disabled={index === 0}
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            onClick={() => moveLayer(index, index + 1)}
+            disabled={index === layers.length - 1}
+          >
+            ↓
+          </button>
         </div>
       ))}
+
       <button type="button" onClick={addLayer}>
         Add Layer
       </button>
@@ -97,9 +119,7 @@ function NetworkForm({ onSubmit }) {
         Save Architecture
       </button>
       <br />
-
       Load Architecture
-      {/* Load from JSON */}
       <input
         type="file"
         accept="application/json"
