@@ -1,44 +1,56 @@
-import React from 'react';
+// src/components/NeuralNetwork.jsx
+import React, { useEffect, useMemo } from 'react';
 import Neuron from './Neuron';
 import Connection from './Connection';
 
-function NeuralNetwork({ layers }) {
-  const layerSpacing = 4;
-  const neuronSpacing = 1.5;
+function NeuralNetwork({ layers, setCenter }) {
+  const layerSpacing = 2.5;
+  const neuronSpacing = 0.8;
 
-  // Calculate neuron positions
-  const neuronPositions = layers.map((count, layerIndex) => {
-    const yOffset = (count - 1) * neuronSpacing * 0.5;
-    return Array.from({ length: count }, (_, i) => ({
-      position: [
-        layerIndex * layerSpacing,
-        yOffset - i * neuronSpacing,
-        0,
-      ],
-    }));
-  });
+  const positions = useMemo(() => {
+    const result = [];
+
+    layers.forEach((numNeurons, layerIdx) => {
+      const layer = [];
+      const yOffset = (numNeurons - 1) * neuronSpacing / 2; // Center each layer vertically
+
+      for (let i = 0; i < numNeurons; i++) {
+        const x = layerIdx * layerSpacing;
+        const y = i * neuronSpacing - yOffset;
+        layer.push([x, y, 0]);
+      }
+      result.push(layer);
+    });
+
+    return result;
+  }, [layers]);
+
+  // Set the center neuron of the center layer as orbit target
+  useEffect(() => {
+    const centerLayerIndex = Math.floor(positions.length / 2);
+    const centerNeurons = positions[centerLayerIndex];
+    const centerNeuron = centerNeurons[Math.floor(centerNeurons.length / 2)];
+    if (centerNeuron && setCenter) {
+      setCenter(centerNeuron);
+    }
+  }, [positions, setCenter]);
 
   return (
     <>
-      {/* Render neurons */}
-      {neuronPositions.map((layer, layerIndex) =>
-        layer.map((neuron, neuronIndex) => (
-          <Neuron
-            key={`neuron-${layerIndex}-${neuronIndex}`}
-            position={neuron.position}
-          />
-        ))
+      {/* Neurons */}
+      {positions.map((layer, i) =>
+        layer.map((pos, j) => <Neuron key={`n-${i}-${j}`} position={pos} />)
       )}
 
-      {/* Render connections */}
-      {neuronPositions.slice(0, -1).map((layer, layerIndex) =>
-        layer.map((fromNeuron, fromIndex) =>
-          neuronPositions[layerIndex + 1].map((toNeuron, toIndex) => (
+      {/* Connections */}
+      {positions.slice(0, -1).map((layer, i) =>
+        layer.flatMap((start, si) =>
+          positions[i + 1].map((end, ei) => (
             <Connection
-              key={`conn-${layerIndex}-${fromIndex}-${toIndex}`}
-              start={fromNeuron.position}
-              end={toNeuron.position}
-              weight={Math.random()} // Replace with actual weight
+              key={`c-${i}-${si}-${ei}`}
+              start={start}
+              end={end}
+              weight={Math.random()}
             />
           ))
         )
