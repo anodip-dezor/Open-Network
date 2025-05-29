@@ -1,4 +1,3 @@
-// src/components/NetworkForm.jsx
 import React from "react";
 
 function NetworkForm({ layers, setLayers }) {

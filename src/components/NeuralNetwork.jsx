@@ -1,4 +1,3 @@
-// src/components/NeuralNetwork.jsx
 import React, { useEffect, useMemo } from 'react';
 import Neuron from './Neuron';
 import Connection from './Connection';

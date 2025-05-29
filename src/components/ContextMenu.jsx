@@ -1,4 +1,3 @@
-// src/components/ContextMenu.jsx
 import React from "react";
 
 const ContextMenu = ({ position, onAction }) => {

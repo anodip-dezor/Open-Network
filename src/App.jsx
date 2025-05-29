@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useRef, useEffect } from "react";
 import NetworkForm from "./components/NetworkForm";
 import NeuralNetwork from "./components/NeuralNetwork";
@@ -82,27 +81,25 @@ function App() {
   }, []);
 
   return (
-    <div className="app" onContextMenu={handleRightClick} style={{ position: "relative" }}>
+    <div className="app" style={{ position: "relative" }}>
       <div className="controls">
         <NetworkForm layers={layers} setLayers={setLayers} />
-
       </div>
 
       <Canvas
+        onContextMenu={handleRightClick}
         style={{ background: "black" }}
         camera={{ position: [0, 0, 10], fov: 50 }}
       >
-        {/* Lights for immersive effect */}
-        <pointLight intensity={1500} position={[40, 40, 40]} color="white" />
-        <pointLight intensity={1500} position={[-40, -40, 40]} color="cyan" />
-        <pointLight intensity={1500} position={[-40, 40, -40]} color="magenta" />
-        <pointLight intensity={1500} position={[40, -40, -40]} color="blue" />
-
         <LensFlareEffect />
         <OrbitControls ref={controlRef} target={centerNeuronRef.current} />
 
         <RotatingGroup>
-          <Grid args={[100, 100]} sectionColor={"#555555"} position={[0, -3, 0]} />
+          <Grid
+            args={[100, 100]}
+            sectionColor={"#555555"}
+            position={[0, -3, 0]}
+          />
           <NeuralNetwork
             layers={layers}
             weights={weights}

@@ -1,4 +1,3 @@
-// src/components/LensFlareEffect.jsx
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
@@ -55,3 +54,17 @@ function LensFlareEffect() {
 }
 
 export default LensFlareEffect;
+
+{
+  /* Lights for immersive effect */
+}
+{
+  /* <pointLight intensity={1500} position={[40, 40, 40]} color="white" />
+        <pointLight intensity={1500} position={[-40, -40, 40]} color="cyan" />
+        <pointLight
+          intensity={1500}
+          position={[-40, 40, -40]}
+          color="magenta"
+        />
+        <pointLight intensity={1500} position={[40, -40, -40]} color="blue" /> */
+}

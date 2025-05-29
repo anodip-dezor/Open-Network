@@ -1,4 +1,3 @@
-// src/components/TrainingAnimation.jsx
 import { useEffect } from 'react';
 import * as TWEEN from '@tweenjs/tween.js';
 
