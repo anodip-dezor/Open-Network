@@ -1,9 +1,7 @@
 // src/components/NetworkForm.jsx
-import React, { useState } from "react";
+import React from "react";
 
-function NetworkForm({ onSubmit }) {
-  const [layers, setLayers] = useState([3, 5, 2]);
-
+function NetworkForm({ layers, setLayers }) {
   const getTotalNeurons = (arr) => arr.reduce((a, b) => a + b, 0);
 
   const handleChange = (index, value) => {
@@ -16,16 +14,13 @@ function NetworkForm({ onSubmit }) {
       );
       if (confirmRemove) {
         removeLayer(index);
-        return;
-      } else {
-        return;
       }
+      return;
     }
 
     newLayers[index] = parsed;
     if (getTotalNeurons(newLayers) <= 250) {
       setLayers(newLayers);
-      onSubmit(newLayers);
     } else {
       alert("Total neurons cannot exceed 250.");
     }
@@ -34,9 +29,7 @@ function NetworkForm({ onSubmit }) {
   const addLayer = () => {
     const currentTotal = getTotalNeurons(layers);
     if (currentTotal + 1 <= 250) {
-      const newLayers = [...layers, 1];
-      setLayers(newLayers);
-      onSubmit(newLayers);
+      setLayers([...layers, 1]);
     } else {
       alert("Cannot add more neurons. Total neuron limit is 250.");
     }
@@ -44,9 +37,7 @@ function NetworkForm({ onSubmit }) {
 
   const removeLayer = (index) => {
     if (layers.length > 1) {
-      const newLayers = layers.filter((_, i) => i !== index);
-      setLayers(newLayers);
-      onSubmit(newLayers);
+      setLayers(layers.filter((_, i) => i !== index));
     }
   };
 
@@ -56,12 +47,11 @@ function NetworkForm({ onSubmit }) {
     const [moved] = newLayers.splice(from, 1);
     newLayers.splice(to, 0, moved);
     setLayers(newLayers);
-    onSubmit(newLayers);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(layers);
+    setLayers([...layers]); // trigger parent update
   };
 
   return (
@@ -101,7 +91,6 @@ function NetworkForm({ onSubmit }) {
       </button>
       <button type="submit">Update Network</button>
 
-      {/* Save to JSON */}
       <button
         type="button"
         onClick={() => {
@@ -118,6 +107,7 @@ function NetworkForm({ onSubmit }) {
       >
         Save Architecture
       </button>
+
       <br />
       Load Architecture
       <input
@@ -137,7 +127,6 @@ function NetworkForm({ onSubmit }) {
                 json.layers.every((n) => Number.isInteger(n) && n > 0)
               ) {
                 setLayers(json.layers);
-                onSubmit(json.layers);
               } else {
                 alert("Invalid architecture format.");
               }
