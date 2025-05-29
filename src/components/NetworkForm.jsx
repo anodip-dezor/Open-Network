@@ -1,5 +1,5 @@
 // src/components/NetworkForm.jsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 function NetworkForm({ onSubmit }) {
   const [layers, setLayers] = useState([3, 5, 2]); // Default layers
@@ -8,6 +8,7 @@ function NetworkForm({ onSubmit }) {
     const newLayers = [...layers];
     newLayers[index] = parseInt(value) || 0;
     setLayers(newLayers);
+    onSubmit(layers);
   };
 
   const addLayer = () => {
@@ -41,10 +42,14 @@ function NetworkForm({ onSubmit }) {
             min="1"
             onChange={(e) => handleChange(index, e.target.value)}
           />
-          <button type="button" onClick={() => removeLayer(index)}>Remove</button>
+          <button type="button" onClick={() => removeLayer(index)}>
+            Remove
+          </button>
         </div>
       ))}
-      <button type="button" onClick={addLayer}>Add Layer</button>
+      <button type="button" onClick={addLayer}>
+        Add Layer
+      </button>
       <button type="submit">Update Network</button>
     </form>
   );
