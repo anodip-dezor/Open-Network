@@ -1,6 +1,60 @@
 import React, { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { FaPen } from "react-icons/fa";
+import { v4 as uuidv4 } from "uuid";
+
+function SortableItem({ id, index, neurons, name, onChange, onRemove, onRename }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    marginBottom: "0.5rem",
+    padding: "0.5rem",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    background: "#f9f9f9",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+        <label>{name}:</label>
+        <button
+          type="button"
+          onClick={() => onRename(index)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <FaPen size={12} />
+        </button>
+      </div>
+      <input
+        type="number"
+        value={neurons}
+        min="1"
+        onChange={(e) => onChange(index, e.target.value)}
+      />
+      <button type="button" onClick={() => onRemove(index)}>Remove</button>
+    </div>
+  );
+}
 
 function NetworkForm({ layers, setLayers }) {
   const [title, setTitle] = useState("Define Neural Network Structure");
@@ -9,6 +63,7 @@ function NetworkForm({ layers, setLayers }) {
     layers.map((_, i) => `Layer ${i + 1}`)
   );
   const [editingLayerIndex, setEditingLayerIndex] = useState(null);
+  const [ids, setIds] = useState(layers.map(() => uuidv4())); // stable IDs for dnd-kit
 
   const getTotalNeurons = (arr) => arr.reduce((a, b) => a + b, 0);
 
@@ -39,6 +94,7 @@ function NetworkForm({ layers, setLayers }) {
     if (currentTotal + 1 <= 250) {
       setLayers([...layers, 1]);
       setLayerNames([...layerNames, `Layer ${layerNames.length + 1}`]);
+      setIds([...ids, uuidv4()]);
     } else {
       alert("Cannot add more neurons. Total neuron limit is 250.");
     }
@@ -48,6 +104,7 @@ function NetworkForm({ layers, setLayers }) {
     if (layers.length > 1) {
       setLayers(layers.filter((_, i) => i !== index));
       setLayerNames(layerNames.filter((_, i) => i !== index));
+      setIds(ids.filter((_, i) => i !== index));
     }
   };
 
@@ -57,23 +114,16 @@ function NetworkForm({ layers, setLayers }) {
     setLayerNames(newNames);
   };
 
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    const from = result.source.index;
-    const to = result.destination.index;
+    const oldIndex = ids.indexOf(active.id);
+    const newIndex = ids.indexOf(over.id);
 
-    const newLayers = [...layers];
-    const newNames = [...layerNames];
-
-    const [movedLayer] = newLayers.splice(from, 1);
-    const [movedName] = newNames.splice(from, 1);
-
-    newLayers.splice(to, 0, movedLayer);
-    newNames.splice(to, 0, movedName);
-
-    setLayers(newLayers);
-    setLayerNames(newNames);
+    setIds((items) => arrayMove(items, oldIndex, newIndex));
+    setLayers((items) => arrayMove(items, oldIndex, newIndex));
+    setLayerNames((items) => arrayMove(items, oldIndex, newIndex));
   };
 
   return (
@@ -102,92 +152,38 @@ function NetworkForm({ layers, setLayers }) {
         )}
       </div>
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="layers">
-          {(provided) => (
-            <div {...provided.droppableProps} ref={provided.innerRef}>
-              {layers.map((neurons, index) => (
-                <Draggable
-                  key={index}
-                  draggableId={`layer-${index}`}
+      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          {layers.map((neurons, index) => (
+            <div key={ids[index]}>
+              {editingLayerIndex === index ? (
+                <input
+                  type="text"
+                  value={layerNames[index]}
+                  autoFocus
+                  onChange={(e) => handleLayerNameChange(index, e.target.value)}
+                  onBlur={() => setEditingLayerIndex(null)}
+                  onKeyDown={(e) => e.key === "Enter" && setEditingLayerIndex(null)}
+                />
+              ) : (
+                <SortableItem
+                  id={ids[index]}
                   index={index}
-                >
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      style={{
-                        ...provided.draggableProps.style,
-                        marginBottom: "0.5rem",
-                        padding: "0.5rem",
-                        border: "1px solid #ccc",
-                        borderRadius: "5px",
-                        background: "#f9f9f9",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.3rem",
-                        }}
-                      >
-                        {editingLayerIndex === index ? (
-                          <input
-                            type="text"
-                            value={layerNames[index]}
-                            autoFocus
-                            onChange={(e) =>
-                              handleLayerNameChange(index, e.target.value)
-                            }
-                            onBlur={() => setEditingLayerIndex(null)}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && setEditingLayerIndex(null)
-                            }
-                          />
-                        ) : (
-                          <>
-                            <label>{layerNames[index]}:</label>
-                            <button
-                              type="button"
-                              onClick={() => setEditingLayerIndex(index)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                              }}
-                            >
-                              <FaPen size={12} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-
-                      <input
-                        type="number"
-                        value={neurons}
-                        min="1"
-                        onChange={(e) => handleChange(index, e.target.value)}
-                      />
-                      <button type="button" onClick={() => removeLayer(index)}>
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
+                  neurons={neurons}
+                  name={layerNames[index]}
+                  onChange={handleChange}
+                  onRemove={removeLayer}
+                  onRename={setEditingLayerIndex}
+                />
+              )}
             </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+          ))}
+        </SortableContext>
+      </DndContext>
 
-      <button type="button" onClick={addLayer}>
-        Add Layer
-      </button>
+      <button type="button" onClick={addLayer}>Add Layer</button>
 
-      {/* Local Settings Section */}
+      {/* Local Settings UI remains unchanged here */}
       <div
         style={{
           marginTop: "1.5rem",
