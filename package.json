@@ -17,7 +17,9 @@
     "@tensorflow/tfjs-vis": "^1.5.1",
     "@tweenjs/tween.js": "^25.0.0",
     "react": "^19.0.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "three": "^0.175.0"
   },
   "devDependencies": {

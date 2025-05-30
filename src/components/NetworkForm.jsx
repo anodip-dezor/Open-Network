@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
+import { FaPen } from "react-icons/fa";
 
 function NetworkForm({ layers, setLayers }) {
+  const [title, setTitle] = useState("Define Neural Network Structure");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [layerNames, setLayerNames] = useState(
+    layers.map((_, i) => `Layer ${i + 1}`)
+  );
+  const [editingLayerIndex, setEditingLayerIndex] = useState(null);
+
   const getTotalNeurons = (arr) => arr.reduce((a, b) => a + b, 0);
 
   const handleChange = (index, value) => {
@@ -9,7 +17,7 @@ function NetworkForm({ layers, setLayers }) {
 
     if (parsed < 1) {
       const confirmRemove = window.confirm(
-        `Neurons in Layer ${index + 1} is less than 1. Do you want to remove this layer?`
+        `Neurons in ${layerNames[index]} is less than 1. Do you want to remove this layer?`
       );
       if (confirmRemove) {
         removeLayer(index);
@@ -29,6 +37,7 @@ function NetworkForm({ layers, setLayers }) {
     const currentTotal = getTotalNeurons(layers);
     if (currentTotal + 1 <= 250) {
       setLayers([...layers, 1]);
+      setLayerNames([...layerNames, `Layer ${layerNames.length + 1}`]);
     } else {
       alert("Cannot add more neurons. Total neuron limit is 250.");
     }
@@ -37,28 +46,79 @@ function NetworkForm({ layers, setLayers }) {
   const removeLayer = (index) => {
     if (layers.length > 1) {
       setLayers(layers.filter((_, i) => i !== index));
+      setLayerNames(layerNames.filter((_, i) => i !== index));
     }
   };
 
   const moveLayer = (from, to) => {
     if (to < 0 || to >= layers.length) return;
+
     const newLayers = [...layers];
-    const [moved] = newLayers.splice(from, 1);
-    newLayers.splice(to, 0, moved);
+    const newNames = [...layerNames];
+
+    const [movedNeuron] = newLayers.splice(from, 1);
+    const [movedName] = newNames.splice(from, 1);
+
+    newLayers.splice(to, 0, movedNeuron);
+    newNames.splice(to, 0, movedName);
+
     setLayers(newLayers);
+    setLayerNames(newNames);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLayers([...layers]); // trigger parent update
+  const handleTitleEdit = () => {
+    setIsEditingTitle(true);
+  };
+
+  const handleLayerNameChange = (index, value) => {
+    const newNames = [...layerNames];
+    newNames[index] = value;
+    setLayerNames(newNames);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>Define Neural Network Structure</h3>
+    <form onSubmit={(e) => e.preventDefault()}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        {isEditingTitle ? (
+          <input
+            type="text"
+            value={title}
+            autoFocus
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => setIsEditingTitle(false)}
+            onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
+          />
+        ) : (
+          <>
+            <h3>{title}</h3>
+            <button type="button" onClick={handleTitleEdit}>
+              <FaPen/>
+            </button>
+          </>
+        )}
+      </div>
+
       {layers.map((neurons, index) => (
         <div key={index} style={{ marginBottom: "0.5rem" }}>
-          <label>Layer {index + 1} Neurons:</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+            {editingLayerIndex === index ? (
+              <input
+                type="text"
+                value={layerNames[index]}
+                autoFocus
+                onChange={(e) => handleLayerNameChange(index, e.target.value)}
+                onBlur={() => setEditingLayerIndex(null)}
+                onKeyDown={(e) => e.key === "Enter" && setEditingLayerIndex(null)}
+              />
+            ) : (
+              <>
+                <label>{layerNames[index]}:</label>
+                <button type="button" onClick={() => setEditingLayerIndex(index)}>
+                  <FaPen/>
+                </button>
+              </>
+            )}
+          </div>
           <input
             type="number"
             value={neurons}
@@ -88,14 +148,14 @@ function NetworkForm({ layers, setLayers }) {
       <button type="button" onClick={addLayer}>
         Add Layer
       </button>
-      <button type="submit">Update Network</button>
 
       <button
         type="button"
         onClick={() => {
-          const blob = new Blob([JSON.stringify({ layers }, null, 2)], {
-            type: "application/json",
-          });
+          const blob = new Blob(
+            [JSON.stringify({ title, layers, layerNames }, null, 2)],
+            { type: "application/json" }
+          );
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -126,6 +186,14 @@ function NetworkForm({ layers, setLayers }) {
                 json.layers.every((n) => Number.isInteger(n) && n > 0)
               ) {
                 setLayers(json.layers);
+                if (Array.isArray(json.layerNames)) {
+                  setLayerNames(json.layerNames);
+                } else {
+                  setLayerNames(json.layers.map((_, i) => `Layer ${i + 1}`));
+                }
+                if (typeof json.title === "string") {
+                  setTitle(json.title);
+                }
               } else {
                 alert("Invalid architecture format.");
               }
