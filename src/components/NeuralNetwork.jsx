@@ -9,16 +9,18 @@ function NeuralNetwork({ layers, weights = null, biases = null, setCenter }) {
   const positions = useMemo(() => {
     const result = [];
 
-    layers.forEach((numNeurons, layerIdx) => {
-      const layer = [];
-      const yOffset = (numNeurons - 1) * neuronSpacing / 2;
+    layers.forEach((layer, layerIdx) => {
+      const layerPositions = [];
+      const numNeurons = layer.neurons || 1; // default to 1 if not set
+      const yOffset = ((numNeurons - 1) * neuronSpacing) / 2;
 
       for (let i = 0; i < numNeurons; i++) {
         const x = layerIdx * layerSpacing;
         const y = i * neuronSpacing - yOffset;
-        layer.push([x, y, 0]);
+        layerPositions.push([x, y, 0]);
       }
-      result.push(layer);
+
+      result.push(layerPositions);
     });
 
     return result;
@@ -36,7 +38,9 @@ function NeuralNetwork({ layers, weights = null, biases = null, setCenter }) {
   return (
     <>
       {positions.map((layer, i) =>
-        layer.map((pos, j) => <Neuron key={`n-${i}-${j}`} position={pos} bias={biases?.[i]?.[j]} />)
+        layer.map((pos, j) => (
+          <Neuron key={`n-${i}-${j}`} position={pos} bias={biases?.[i]?.[j]} />
+        ))
       )}
       {positions.slice(0, -1).map((layer, i) =>
         layer.flatMap((start, si) =>

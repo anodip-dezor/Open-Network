@@ -20,7 +20,49 @@ function RotatingGroup({ children }) {
 }
 
 function App() {
-  const [layers, setLayers] = useState([3, 5, 2]);
+  const [layers, setLayers] = useState([
+            {
+              id: 1,
+              name: "Layer 1",
+              neurons: 3,
+              filter: 25,
+              kernel: 25,
+              padding: 25,
+              strides: 25,
+              activation: "relu",
+              regularization: { type: "l2", value: 0.1 },
+              biasInit: "xavier",
+              skip: [],
+            },
+            {
+              id: 2,
+              name: "Layer 2",
+              neurons: 5,
+              filter: 15,
+              kernel: 15,
+              padding: 15,
+              strides: 15,
+              activation: "relu",
+              regularization: { type: "l2", value: 0.1 },
+              biasInit: "xavier",
+              skip: [],
+            },
+            {
+              id: 3,
+              name: "Layer 3",
+              neurons: 2,
+              filter: 35,
+              kernel: 35,
+              padding: 35,
+              strides: 35,
+              activation: "relu",
+              regularization: { type: "l2", value: 0.1 },
+              biasInit: "xavier",
+              skip: [],
+            },
+          ]);
+
+  const [selectedLayerIndex, setSelectedLayerIndex] = useState(2);
   const [weights, setWeights] = useState(null);
   const [biases, setBiases] = useState(null);
   const controlRef = useRef();
@@ -35,38 +77,98 @@ function App() {
   const handleContextAction = (action) => {
     switch (action) {
       case "Add Layer":
-        if (layers.reduce((a, b) => a + b, 0) < 250) {
-          setLayers([...layers, 1]);
+        if (layers.length < 250) {
+          const newLayer = {
+            id: layers.length + 1,
+            name: `Layer ${layers.length + 1}`,
+            neurons: 4,
+            filter: 15,
+            kernel: 15,
+            padding: 15,
+            strides: 15,
+            activation: "relu",
+            regularization: { type: "l2", value: 0.1 },
+            biasInit: "xavier",
+            skip: [],
+          };
+          setLayers([...layers, newLayer]);
         }
         break;
+
       case "Remove Layer":
         if (layers.length > 1) {
           setLayers(layers.slice(0, -1));
         }
         break;
+
       case "Edit Layer": {
-        const index = prompt(`Which layer to edit? (1-${layers.length})`);
-        const count = prompt(`Enter new neuron count for Layer ${index}:`);
-        const i = parseInt(index) - 1;
-        const n = parseInt(count);
-        if (i >= 0 && i < layers.length && n > 0) {
+        const index = parseInt(prompt(`Which layer to edit? (1-${layers.length})`), 10);
+        const count = parseInt(prompt(`Enter new neuron count for Layer ${index}:`), 10);
+        if (index > 0 && index <= layers.length && count > 0) {
           const newLayers = [...layers];
-          newLayers[i] = n;
+          newLayers[index - 1] = {
+            ...newLayers[index - 1],
+            neurons: count,
+          };
           setLayers(newLayers);
         }
         break;
       }
+
       case "New Project":
         if (window.confirm("Start a new project? This will reset layers.")) {
-          setLayers([3, 5, 2]);
+          setLayers([
+            {
+              id: 1,
+              name: "Layer 1",
+              neurons: 3,
+              filter: 25,
+              kernel: 25,
+              padding: 25,
+              strides: 25,
+              activation: "relu",
+              regularization: { type: "l2", value: 0.1 },
+              biasInit: "xavier",
+              skip: [],
+            },
+            {
+              id: 2,
+              name: "Layer 2",
+              neurons: 5,
+              filter: 15,
+              kernel: 15,
+              padding: 15,
+              strides: 15,
+              activation: "relu",
+              regularization: { type: "l2", value: 0.1 },
+              biasInit: "xavier",
+              skip: [],
+            },
+            {
+              id: 3,
+              name: "Layer 3",
+              neurons: 2,
+              filter: 35,
+              kernel: 35,
+              padding: 35,
+              strides: 35,
+              activation: "relu",
+              regularization: { type: "l2", value: 0.1 },
+              biasInit: "xavier",
+              skip: [],
+            },
+          ]);
           setWeights(null);
           setBiases(null);
+          setSelectedLayerIndex(null);
         }
         break;
+
       default:
         break;
     }
-    setContextMenu(null); // close after action
+
+    setContextMenu(null); // close menu
   };
 
   useEffect(() => {
@@ -83,7 +185,12 @@ function App() {
   return (
     <div className="app" style={{ position: "relative" }}>
       <div className="controls">
-        <NetworkForm layers={layers} setLayers={setLayers} />
+        <NetworkForm
+          layers={layers}
+          setLayers={setLayers}
+          selectedLayerIndex={selectedLayerIndex}
+          setSelectedLayerIndex={setSelectedLayerIndex}
+        />
       </div>
 
       <Canvas
@@ -104,6 +211,7 @@ function App() {
             layers={layers}
             weights={weights}
             biases={biases}
+            selectedLayerIndex={selectedLayerIndex}
             setCenter={(pos) => {
               centerNeuronRef.current = pos;
               if (controlRef.current) {
