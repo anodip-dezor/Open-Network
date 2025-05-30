@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FaPen } from "react-icons/fa";
 
 function NetworkForm({ layers, setLayers }) {
@@ -50,29 +51,28 @@ function NetworkForm({ layers, setLayers }) {
     }
   };
 
-  const moveLayer = (from, to) => {
-    if (to < 0 || to >= layers.length) return;
+  const handleLayerNameChange = (index, value) => {
+    const newNames = [...layerNames];
+    newNames[index] = value;
+    setLayerNames(newNames);
+  };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const from = result.source.index;
+    const to = result.destination.index;
 
     const newLayers = [...layers];
     const newNames = [...layerNames];
 
-    const [movedNeuron] = newLayers.splice(from, 1);
+    const [movedLayer] = newLayers.splice(from, 1);
     const [movedName] = newNames.splice(from, 1);
 
-    newLayers.splice(to, 0, movedNeuron);
+    newLayers.splice(to, 0, movedLayer);
     newNames.splice(to, 0, movedName);
 
     setLayers(newLayers);
-    setLayerNames(newNames);
-  };
-
-  const handleTitleEdit = () => {
-    setIsEditingTitle(true);
-  };
-
-  const handleLayerNameChange = (index, value) => {
-    const newNames = [...layerNames];
-    newNames[index] = value;
     setLayerNames(newNames);
   };
 
@@ -91,119 +91,172 @@ function NetworkForm({ layers, setLayers }) {
         ) : (
           <>
             <h3>{title}</h3>
-            <button type="button" onClick={handleTitleEdit}>
-              <FaPen/>
+            <button
+              type="button"
+              onClick={() => setIsEditingTitle(true)}
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
+              <FaPen />
             </button>
           </>
         )}
       </div>
 
-      {layers.map((neurons, index) => (
-        <div key={index} style={{ marginBottom: "0.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            {editingLayerIndex === index ? (
-              <input
-                type="text"
-                value={layerNames[index]}
-                autoFocus
-                onChange={(e) => handleLayerNameChange(index, e.target.value)}
-                onBlur={() => setEditingLayerIndex(null)}
-                onKeyDown={(e) => e.key === "Enter" && setEditingLayerIndex(null)}
-              />
-            ) : (
-              <>
-                <label>{layerNames[index]}:</label>
-                <button type="button" onClick={() => setEditingLayerIndex(index)}>
-                  <FaPen/>
-                </button>
-              </>
-            )}
-          </div>
-          <input
-            type="number"
-            value={neurons}
-            min="1"
-            onChange={(e) => handleChange(index, e.target.value)}
-          />
-          <button type="button" onClick={() => removeLayer(index)}>
-            Remove
-          </button>
-          <button
-            type="button"
-            onClick={() => moveLayer(index, index - 1)}
-            disabled={index === 0}
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            onClick={() => moveLayer(index, index + 1)}
-            disabled={index === layers.length - 1}
-          >
-            ↓
-          </button>
-        </div>
-      ))}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="layers">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              {layers.map((neurons, index) => (
+                <Draggable
+                  key={index}
+                  draggableId={`layer-${index}`}
+                  index={index}
+                >
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={{
+                        ...provided.draggableProps.style,
+                        marginBottom: "0.5rem",
+                        padding: "0.5rem",
+                        border: "1px solid #ccc",
+                        borderRadius: "5px",
+                        background: "#f9f9f9",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.3rem",
+                        }}
+                      >
+                        {editingLayerIndex === index ? (
+                          <input
+                            type="text"
+                            value={layerNames[index]}
+                            autoFocus
+                            onChange={(e) =>
+                              handleLayerNameChange(index, e.target.value)
+                            }
+                            onBlur={() => setEditingLayerIndex(null)}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && setEditingLayerIndex(null)
+                            }
+                          />
+                        ) : (
+                          <>
+                            <label>{layerNames[index]}:</label>
+                            <button
+                              type="button"
+                              onClick={() => setEditingLayerIndex(index)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <FaPen size={12} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      <input
+                        type="number"
+                        value={neurons}
+                        min="1"
+                        onChange={(e) => handleChange(index, e.target.value)}
+                      />
+                      <button type="button" onClick={() => removeLayer(index)}>
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <button type="button" onClick={addLayer}>
         Add Layer
       </button>
 
-      <button
-        type="button"
-        onClick={() => {
-          const blob = new Blob(
-            [JSON.stringify({ title, layers, layerNames }, null, 2)],
-            { type: "application/json" }
-          );
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "network.json";
-          a.click();
-          URL.revokeObjectURL(url);
+      {/* Local Settings Section */}
+      <div
+        style={{
+          marginTop: "1.5rem",
+          padding: "1rem",
+          border: "1px solid #aaa",
+          borderRadius: "6px",
+          background: "#f0f0f0",
         }}
       >
-        Save Architecture
-      </button>
+        <h4>Local Settings</h4>
 
-      <br />
-      Load Architecture
-      <input
-        type="file"
-        accept="application/json"
-        style={{ display: "block", marginTop: "1rem" }}
-        onChange={(e) => {
-          const file = e.target.files[0];
-          if (!file) return;
+        <button
+          type="button"
+          onClick={() => {
+            const blob = new Blob(
+              [JSON.stringify({ title, layers, layerNames }, null, 2)],
+              { type: "application/json" }
+            );
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "network.json";
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          Save Architecture
+        </button>
 
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            try {
-              const json = JSON.parse(event.target.result);
-              if (
-                Array.isArray(json.layers) &&
-                json.layers.every((n) => Number.isInteger(n) && n > 0)
-              ) {
-                setLayers(json.layers);
-                if (Array.isArray(json.layerNames)) {
-                  setLayerNames(json.layerNames);
-                } else {
-                  setLayerNames(json.layers.map((_, i) => `Layer ${i + 1}`));
+        <div style={{ marginTop: "1rem" }}>
+          <label>Load Architecture</label>
+          <input
+            type="file"
+            accept="application/json"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                try {
+                  const json = JSON.parse(event.target.result);
+                  if (
+                    Array.isArray(json.layers) &&
+                    json.layers.every((n) => Number.isInteger(n) && n > 0)
+                  ) {
+                    setLayers(json.layers);
+                    if (Array.isArray(json.layerNames)) {
+                      setLayerNames(json.layerNames);
+                    } else {
+                      setLayerNames(
+                        json.layers.map((_, i) => `Layer ${i + 1}`)
+                      );
+                    }
+                    if (typeof json.title === "string") {
+                      setTitle(json.title);
+                    }
+                  } else {
+                    alert("Invalid architecture format.");
+                  }
+                } catch (err) {
+                  alert("Failed to parse JSON.");
                 }
-                if (typeof json.title === "string") {
-                  setTitle(json.title);
-                }
-              } else {
-                alert("Invalid architecture format.");
-              }
-            } catch (err) {
-              alert("Failed to parse JSON.");
-            }
-          };
-          reader.readAsText(file);
-        }}
-      />
+              };
+              reader.readAsText(file);
+            }}
+          />
+        </div>
+      </div>
     </form>
   );
 }
