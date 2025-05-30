@@ -197,8 +197,66 @@ function NetworkForm({ layers, setLayers }) {
           background: "#f0f0f0",
         }}
       >
-        <h4>Local Settings</h4>
+        <h4>Layer Setting</h4>
 
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "0.5rem",
+          }}
+        >
+          <label>
+            Filter
+            <input type="number" defaultValue={15} />
+          </label>
+          <label>
+            Padding
+            <input type="number" defaultValue={15} />
+          </label>
+          <label>
+            Kernel
+            <input type="number" defaultValue={15} />
+          </label>
+          <label>
+            Strides
+            <input type="number" defaultValue={15} />
+          </label>
+          <label>
+            Activation
+            <select defaultValue="relu">
+              <option value="relu">ReLU (Rectified Linear Unit)</option>
+              <option value="sigmoid">Sigmoid</option>
+              <option value="tanh">Tanh</option>
+              <option value="softmax">Softmax</option>
+            </select>
+          </label>
+          <label>
+            Regularization
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <select defaultValue="l2">
+                <option value="l2">L2 Ridge</option>
+                <option value="l1">L1 Lasso</option>
+              </select>
+              <input type="number" step="0.01" defaultValue={0.1} />
+            </div>
+          </label>
+          <label>
+            Bias Initializer
+            <select defaultValue="xavier">
+              <option value="xavier">Xavier Initializer</option>
+              <option value="he">He Initializer</option>
+              <option value="zero">Zero</option>
+            </select>
+          </label>
+          <label>
+            Skip Connection
+            <input type="text" placeholder="#3" />
+            <input type="text" placeholder="#5" />
+          </label>
+        </div>
+
+        {/* Keep existing Save/Load buttons below */}
         <button
           type="button"
           onClick={() => {
