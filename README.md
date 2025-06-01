@@ -9,9 +9,9 @@ to run in browser port localhost:5173
 npm run dev
 ```
 
-
+to build and deploy
 ```bash
-npm run dev
+npm run build
 ```
 
 ## Expanding the ESLint configuration
