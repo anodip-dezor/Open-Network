@@ -20,9 +20,9 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ### TODO
 
-[-] Raycasting / Affecting objects in scene
-[-] Code Clean Up
-[-] Object Creation
-[-] Network Form File Change
-[-] How to drag and drop ui
-[-] Dynamic setting change
+* Raycasting / Affecting objects in scene
+* Code Clean Up
+* Object Creation
+* Network Form File Change
+* How to drag and drop ui
+* Dynamic setting change
