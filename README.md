@@ -4,6 +4,15 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 Currently, two official plugins are available:
 
+to run in browser port localhost:5173
+```bash
+npm run dev
+```
+
+
+```bash
+npm run dev
+```
 
 ## Expanding the ESLint configuration
 
